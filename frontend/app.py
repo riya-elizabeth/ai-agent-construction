@@ -140,6 +140,12 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
+# --- Safety Disclaimer Banner ---
+st.warning(
+    "⚠️ **Safety Disclaimer:** This AI assistant provides general guidance based on Cal/OSHA and OSHA documents. "
+    "It does not replace a qualified supervisor or safety professional. "
+    "Always consult a competent person for safety-critical decisions on site."
+)
 
 # --- Session state ---
 if "messages" not in st.session_state:
