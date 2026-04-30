@@ -16,7 +16,7 @@ class RAGPipeline:
         collection_name="construction_procedures",
         sqlite_path="qa_log.db",
         top_k=5,
-        similarity_threshold=0.55,
+        similarity_threshold=0.50,
     ):
 
         # Connect to ChromaDB
