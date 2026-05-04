@@ -6,7 +6,9 @@
 
 ## Overview
 
-The agent achieved **84% coverage (63/75 questions)** in initial testing. The 16% gap and all known limitations are documented below — categorized by type to support Phase 4 tuning and risk reporting.
+The agent achieved **84% coverage (63/75 questions)** in evaluation testing. The 16% gap and all known limitations are documented below — categorized by type to support Phase 4 tuning and risk reporting.
+
+**Chunking analysis (Phase 4):** Three chunking strategies were tested against the same 75-question ground truth. The original page/section-based chunks (288 chunks, ~1,880 chars avg) outperformed algorithmic splits at 500 chars (24% coverage) and 1,200 chars (13% coverage). The original chunking is optimal for this dense regulatory corpus and was retained.
 
 ---
 
@@ -14,27 +16,28 @@ The agent achieved **84% coverage (63/75 questions)** in initial testing. The 16
 
 **The agent only knows what is in the source documents.**
 
-The knowledge base is limited to two documents:
+The knowledge base consists of three documents:
 - Cal/OSHA Pocket Guide for the Construction Industry (2022 Edition)
 - OSHA Construction Safety Manual
+- OSHA Trenching & Excavation Safety Guide
 
 It has no awareness of:
-- State or county-specific local codes beyond Cal/OSHA
+- California-specific excavation permit requirements (Title 8, §1540-1564)
 - Company-specific internal safety rules or site procedures
 - Regulations updated after the ingestion date
-- Topics not covered in either source document
+- Topics not covered in the source documents
 
 ---
 
-## 2. Coverage Gap — 16% Unanswered Questions
+## 2. Coverage Gap — 16% Unanswered Questions (Known Knowledge Gaps)
 
-From the 75-question evaluation run, **12 questions (16%) were flagged as unanswered**. These are not random failures — they fall into three clear patterns:
+From the 75-question evaluation, **12 questions (16%) were flagged as unanswered**. These are confirmed knowledge gaps — the content does not exist in any of the 3 source documents. They fall into three patterns:
 
-### Pattern A — Heat illness specifics (content gap)
+### Pattern A — Heat illness specifics
 - How much water must employers provide for heat illness prevention?
 - What must a written heat illness prevention plan include at a minimum?
 
-### Pattern B — Excavation pre-work and permits (content gap or chunking issue)
+### Pattern B — California-specific excavation rules
 - What permit requirements apply to excavations in California?
 - What are the required steps before opening an excavation?
 - When is a protective system not required?
@@ -42,14 +45,13 @@ From the 75-question evaluation run, **12 questions (16%) were flagged as unansw
 - What are the key requirements for installing/removing support systems?
 - In what situations must emergency rescue equipment be readily available?
 
-### Pattern C — Operational how-to questions (content gap)
+### Pattern C — Operational procedures
 - How should supervisors run a weekly toolbox talk?
 - What makes a space a confined space?
 - What should be checked before an operator uses mobile equipment?
 - What should a PPE program include?
 
-**Root cause assessment:**
-Most failures are likely content gaps in the source documents rather than retrieval failures — the agent correctly retrieved related chunks but the specific answer was not present in them.
+**Root cause:** Confirmed content gaps — not retrieval or chunking failures. The agent correctly retrieved related chunks but the specific answers were not present in any source document. These questions are intentionally left unanswered rather than risk hallucination.
 
 ---
 

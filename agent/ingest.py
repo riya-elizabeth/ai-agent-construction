@@ -104,6 +104,7 @@ def ingest(
     chunk_size: int = 500,
     chunk_overlap: int = 100,
     min_length: int = 100,
+    append: bool = False,
 ):
     pdf_dir = Path(pdf_dir)
     pdf_files = sorted(pdf_dir.glob("*.pdf"))
@@ -114,17 +115,24 @@ def ingest(
 
     print(f"Found {len(pdf_files)} PDF(s): {[f.name for f in pdf_files]}")
     print(f"Settings: chunk_size={chunk_size}, overlap={chunk_overlap}, min_length={min_length}")
-    print(f"Target collection: {collection_name}\n")
+    print(f"Target collection: {collection_name}")
+    print(f"Mode: {'append' if append else 'overwrite'}\n")
 
     client = chromadb.PersistentClient(path=chroma_path)
-
-    # Delete existing collection with same name so we start fresh
     existing = [c.name for c in client.list_collections()]
-    if collection_name in existing:
-        client.delete_collection(collection_name)
-        print(f"Deleted existing collection '{collection_name}'")
 
-    collection = client.create_collection(collection_name)
+    if append:
+        if collection_name not in existing:
+            print(f"Collection '{collection_name}' not found — creating it.")
+            collection = client.create_collection(collection_name)
+        else:
+            collection = client.get_collection(collection_name)
+            print(f"Appending to existing collection '{collection_name}' ({collection.count()} chunks already)")
+    else:
+        if collection_name in existing:
+            client.delete_collection(collection_name)
+            print(f"Deleted existing collection '{collection_name}'")
+        collection = client.create_collection(collection_name)
 
     total_chunks = 0
     skipped = 0
@@ -185,6 +193,7 @@ if __name__ == "__main__":
     parser.add_argument("--chunk-size", type=int, default=500, help="Target chunk size in chars")
     parser.add_argument("--chunk-overlap", type=int, default=100, help="Overlap between chunks in chars")
     parser.add_argument("--min-length", type=int, default=100, help="Min chunk length (filters garbage)")
+    parser.add_argument("--append", action="store_true", help="Append to existing collection instead of overwriting")
     args = parser.parse_args()
 
     ingest(
@@ -194,4 +203,5 @@ if __name__ == "__main__":
         chunk_size=args.chunk_size,
         chunk_overlap=args.chunk_overlap,
         min_length=args.min_length,
+        append=args.append,
     )
