@@ -205,6 +205,42 @@ streamlit run frontend/app.py
 
 ---
 
+## Project Summary
+
+### The Problem
+Construction workers on job sites need fast, accurate answers to OSHA safety questions — in high-pressure situations where looking something up or waiting for a supervisor isn't practical. Getting the wrong answer on a safety question can be dangerous.
+
+### The Solution
+A RAG AI agent that searches verified OSHA documents and returns cited, regulation-grounded answers — or clearly says it doesn't know rather than guessing.
+
+### Key Decisions & Why They Matter
+
+**Grounding over hallucination**
+The agent is strictly prohibited from answering outside its source documents. This produced the 0% hallucination rate — critical for a safety application.
+
+**Original chunking was optimal**
+Three chunking strategies were tested. The original page/section-based 288 chunks (84% coverage) outperformed algorithmic splits at 500 chars (24%) and 1,200 chars (13%). Dense regulatory text needs semantically coherent chunks, not character-count splits.
+
+**Document the gaps, don't paper over them**
+12 questions are genuinely unanswered. Rather than expanding the knowledge base to reach 88%, the decision was made to clearly document these as known content boundaries — a more honest and maintainable position.
+
+**Full conversation memory**
+The agent passes the entire session history to Claude on every turn, enabling natural multi-turn follow-up questions within a session.
+
+### Phase Summary
+
+| Phase | What Was Done | Outcome |
+|---|---|---|
+| Phase 1 | Project setup, 75-question ground truth dataset | Evaluation framework ready |
+| Phase 2 | PDF ingestion, 288-chunk knowledge base | ChromaDB vector store built |
+| Phase 3 | RAG pipeline, FastAPI backend, Streamlit UI | Working agent, 84% coverage |
+| Phase 4 | Chunking analysis, hallucination scoring, security hardening, conversation memory, full documentation | 0% hallucination, production-ready |
+
+### The Bottom Line
+A production-quality RAG agent that answers construction safety questions with **zero hallucination** and **94% accuracy** on the questions it answers. The 16% it doesn't answer are known content gaps — it tells you honestly rather than making something up. For a safety-critical application, that's the right tradeoff.
+
+---
+
 ## Context
 
 Built as part of the **Ampytics Practicum** — an applied AI project for a construction industry client. The agent is designed to be deployed on job sites where workers need immediate, reliable access to OSHA safety guidance.
