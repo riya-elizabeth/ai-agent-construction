@@ -28,6 +28,31 @@ def is_rate_limited(ip: str) -> bool:
     return False
 
 
+import re
+
+# Prompt injection patterns — phrases that attempt to override the system prompt
+INJECTION_PATTERNS = [
+    r"ignore\s+(previous|prior|above|all)\s+(instructions?|rules?|prompts?|context)",
+    r"forget\s+(previous|prior|above|all|your)\s*(instructions?|rules?|prompts?|context)?",
+    r"you\s+are\s+now\s+(a\s+)?(?!a\s+construction)",  # "you are now a [different persona]"
+    r"disregard\s+(all|previous|prior|your)\s*(instructions?|rules?|prompts?)?",
+    r"do\s+not\s+follow\s+(your\s+)?(instructions?|rules?|guidelines?)",
+    r"override\s+(your\s+)?(instructions?|rules?|system|prompt)",
+    r"new\s+instructions?:",
+    r"system\s*:\s*you",       # injected system role
+    r"assistant\s*:\s*sure",   # pre-filling assistant response
+    r"<\s*/?system\s*>",       # XML-style role injection
+    r"###\s*(system|instruction|prompt)",  # markdown role injection
+]
+
+INJECTION_REGEX = re.compile("|".join(INJECTION_PATTERNS), re.IGNORECASE)
+
+
+def detect_injection(text: str) -> bool:
+    """Return True if the text contains a suspected prompt injection attempt."""
+    return bool(INJECTION_REGEX.search(text))
+
+
 class QuestionRequest(BaseModel):
     question: str
 
@@ -59,6 +84,13 @@ async def ask_question(request: QuestionRequest, req: Request):
     if len(request.question) > 500:
         raise HTTPException(
             status_code=400, detail="Question must be under 500 characters"
+        )
+
+    # Prompt injection detection
+    if detect_injection(request.question):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid input. Please ask a construction safety question.",
         )
 
     result = pipeline.ask(request.question)
