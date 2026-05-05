@@ -53,8 +53,14 @@ def detect_injection(text: str) -> bool:
     return bool(INJECTION_REGEX.search(text))
 
 
+class HistoryTurn(BaseModel):
+    role: str    # "user" or "assistant"
+    content: str
+
+
 class QuestionRequest(BaseModel):
     question: str
+    history: list[HistoryTurn] = []
 
 
 class AnswerResponse(BaseModel):
@@ -93,5 +99,6 @@ async def ask_question(request: QuestionRequest, req: Request):
             detail="Invalid input. Please ask a construction safety question.",
         )
 
-    result = pipeline.ask(request.question)
+    history = [{"role": t.role, "content": t.content} for t in request.history]
+    result = pipeline.ask(request.question, history=history)
     return result

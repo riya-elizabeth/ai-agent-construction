@@ -74,8 +74,17 @@ class RAGPipeline:
 
         return chunks, sources
 
-    def ask(self, question):
-        """Run the full RAG pipeline for a question."""
+    def ask(self, question, history=None):
+        """Run the full RAG pipeline for a question.
+
+        Args:
+            question: The current user question.
+            history: Optional list of prior turns, each a dict with
+                     'role' ('user'|'assistant') and 'content' (str).
+                     Last MAX_HISTORY_TURNS turns are used for context.
+        """
+        MAX_HISTORY_TURNS = 3  # keep last 3 Q&A pairs (6 messages)
+
         # Step 1: Retrieve relevant chunks
         chunks, sources = self.retrieve(question)
 
@@ -87,26 +96,35 @@ class RAGPipeline:
         else:
             context = "\n\n---\n\n".join(chunks)
 
-        # Step 3: Build the prompt
-        prompt = self.system_prompt_template.replace("{context}", context).replace(
+        # Step 3: Build the prompt for the current question
+        current_prompt = self.system_prompt_template.replace("{context}", context).replace(
             "{question}", question
         )
 
-        # Step 4: Call Claude API
+        # Step 4: Build messages array — history + current question
+        messages = []
+        if history:
+            # Trim to last MAX_HISTORY_TURNS turns (each turn = 1 user + 1 assistant)
+            recent = history[-(MAX_HISTORY_TURNS * 2):]
+            for turn in recent:
+                messages.append({"role": turn["role"], "content": turn["content"]})
+        messages.append({"role": "user", "content": current_prompt})
+
+        # Step 5: Call Claude API
         message = self.claude.messages.create(
             model="claude-sonnet-4-20250514",
             max_tokens=1024,
             temperature=0.0,
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages,
         )
         response = message.content[0].text
 
-        # Step 5: Check if agent flagged as unanswered
+        # Step 6: Check if agent flagged as unanswered
         if "I cannot find this information" in response:
             answered = False
             self._log_unanswered(question)
 
-        # Step 6: Log to SQLite
+        # Step 7: Log to SQLite
         self._log_to_db(question, chunks, response, answered)
 
         return {
