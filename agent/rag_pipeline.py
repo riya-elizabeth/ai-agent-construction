@@ -83,8 +83,6 @@ class RAGPipeline:
                      'role' ('user'|'assistant') and 'content' (str).
                      Last MAX_HISTORY_TURNS turns are used for context.
         """
-        MAX_HISTORY_TURNS = 3  # keep last 3 Q&A pairs (6 messages)
-
         # Step 1: Retrieve relevant chunks
         chunks, sources = self.retrieve(question)
 
@@ -101,12 +99,10 @@ class RAGPipeline:
             "{question}", question
         )
 
-        # Step 4: Build messages array — history + current question
+        # Step 4: Build messages array — full history + current question
         messages = []
         if history:
-            # Trim to last MAX_HISTORY_TURNS turns (each turn = 1 user + 1 assistant)
-            recent = history[-(MAX_HISTORY_TURNS * 2):]
-            for turn in recent:
+            for turn in history:
                 messages.append({"role": turn["role"], "content": turn["content"]})
         messages.append({"role": "user", "content": current_prompt})
 

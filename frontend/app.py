@@ -283,12 +283,12 @@ if prompt := st.chat_input("Ask a construction safety question..."):
     with st.chat_message("assistant"):
         try:
             with st.spinner("Searching procedures..."):
-                # Build conversation history from session (last 3 Q&A turns = 6 messages)
+                # Build full conversation history from session
                 history = [
                     {"role": m["role"], "content": m["content"]}
                     for m in st.session_state.messages[:-1]  # exclude the just-added user message
                     if m["role"] in ("user", "assistant")
-                ][-6:]
+                ]
 
                 response = requests.post(
                     API_URL,
