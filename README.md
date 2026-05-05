@@ -157,22 +157,35 @@ These questions are intentionally left unanswered rather than risk hallucination
 ```
 ai-agent-construction/
 ├── agent/
-│   ├── ingest.py              # Document chunking & ChromaDB ingestion
 │   ├── rag_pipeline.py        # Core RAG logic — retrieval + Claude API call
-│   └── system_prompt.txt      # Agent rules and behavior constraints
+│   ├── ingest.py              # PDF ingestion & ChromaDB loading
+│   └── system_prompt.txt      # Agent behavior rules and constraints
 ├── api/
-│   └── main.py                # FastAPI backend — /ask endpoint
-├── evaluation/
-│   ├── evaluate.py            # Full 75-question evaluation pipeline
-│   ├── score_hallucination.py # LLM-as-judge hallucination scoring
-│   ├── eval_results.csv       # Full evaluation results with scores
-│   ├── ground_truth.csv       # 75-question ground truth Q&A set
-│   └── unanswered_questions.csv  # Flagged knowledge gaps
+│   └── main.py                # FastAPI backend — validation, rate limiting, injection protection
 ├── frontend/
-│   └── app.py                 # Streamlit chat UI
+│   └── app.py                 # Streamlit chat UI with conversation memory
+├── evaluation/
+│   ├── ground_truth.csv       # 75-question ground truth Q&A set
+│   ├── eval_results.csv       # Full evaluation results with hallucination scores
+│   ├── evaluate.py            # Full batch evaluation pipeline
+│   ├── score_hallucination.py # LLM-as-judge hallucination scoring
+│   └── unanswered_questions.csv  # Auto-logged knowledge gaps
 ├── data/
-│   └── procedures/            # Source OSHA PDFs
-├── model_limitations.md       # Known gaps and roadmap
+│   └── procedures/            # Source OSHA PDF documents
+├── chroma_db/                 # ChromaDB vector store (288 chunks, pre-built)
+├── docs/
+│   ├── handover.md            # Handover guide for new teams
+│   ├── technical_guide.md     # Setup and architecture reference
+│   ├── stakeholder_presentation.md  # 13-slide stakeholder deck
+│   ├── risk_cba_report.md     # Limitations, risks & recommendations
+│   ├── tuning_log.md          # Experiment results and decisions
+│   ├── retrospective.md       # Lessons learned
+│   ├── creation_process.md    # Phase-by-phase decision log
+│   └── model_limitations.md  # Known gaps (also at root)
+├── evaluate_quick.py          # Quick 75-question coverage evaluation
+├── model_limitations.md       # Known gaps and knowledge boundaries
+├── requirements.txt           # Python dependencies
+├── .env.example               # Environment variable template
 └── README.md
 ```
 

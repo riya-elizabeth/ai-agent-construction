@@ -5,4 +5,6 @@ __pycache__/
 .DS_Store
 .ipynb_checkpoints/
 *.db
-.DS_Store
+.Rhistory
+demos/
+data preperation/
